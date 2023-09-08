@@ -2,26 +2,25 @@ package main.java.modelo;
 
 
 import javax.persistence.*;
-import java.util.Date;
+import java.sql.Date;
 
 @Entity
 @Table(name = "reservas")
-public class Reservas {
+public class Reserva {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private int id;
     private Date fechaEntrada;
     private Date fechaSalida;
     private double valor;
     private String formaPago;
 
     @SuppressWarnings("unused")
-    public Reservas() {
+    public Reserva() {
     }
 
-
-    public Reservas(Date fechaEntrada, Date fechaSalida, double valor, String formaPago) {
+    public Reserva(Date fechaEntrada, Date fechaSalida, double valor, String formaPago) {
         this.fechaEntrada = fechaEntrada;
         this.fechaSalida = fechaSalida;
         this.valor = valor;
@@ -30,6 +29,10 @@ public class Reservas {
 
     public Date getFechaEntrada() {
         return fechaEntrada;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public void setFechaEntrada(Date fechaEntrada) {

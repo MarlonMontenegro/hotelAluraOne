@@ -1,6 +1,7 @@
 package main.resources.views;
 
 import java.awt.EventQueue;
+import javax.persistence.EntityManager;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -12,6 +13,10 @@ import java.awt.Color;
 import javax.swing.JTextField;
 
 import com.toedter.calendar.JDateChooser;
+import main.java.dao.ReservaDao;
+import main.java.modelo.Huesped;
+import main.java.modelo.Reserva;
+import main.java.utils.JPAUtils;
 
 import java.awt.Font;
 import javax.swing.JComboBox;
@@ -22,13 +27,13 @@ import java.awt.event.MouseMotionAdapter;
 import java.awt.Toolkit;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
+import java.util.Date;
 import java.util.Objects;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 
 
-@SuppressWarnings("serial")
 public class ReservasView extends JFrame {
 
     private final JPanel contentPane;
@@ -40,6 +45,9 @@ public class ReservasView extends JFrame {
     private final JLabel labelExit;
     private final JLabel labelAtras;
     private final int nightPrice = 20;
+    private final EntityManager manager = JPAUtils.getEntityManager();
+    private final ReservaDao reservaDao = new ReservaDao(manager);
+    private final int VALOR_POR_NOCHE = 20;
 
     /**
      * Launch the application.
@@ -251,6 +259,13 @@ public class ReservasView extends JFrame {
         //Campos que guardaremos en la base de datos
 
         txtFechaEntrada = new JDateChooser();
+
+        txtFechaEntrada.addPropertyChangeListener(new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent evt) {
+                calcularValor(txtFechaEntrada, txtFechaSalida);
+            }
+        });
+
         txtFechaEntrada.getCalendarButton().setBackground(SystemColor.textHighlight);
         txtFechaEntrada.getCalendarButton().setIcon(new ImageIcon(Objects.requireNonNull(ReservasView.class.getResource("/imagenes/icon-reservas.png"))));
         txtFechaEntrada.getCalendarButton().setFont(new Font("Roboto", Font.PLAIN, 12));
@@ -264,24 +279,17 @@ public class ReservasView extends JFrame {
 
 
         txtFechaSalida = new JDateChooser();
+        txtFechaSalida.addPropertyChangeListener(new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent evt) {
+                calcularValor(txtFechaEntrada, txtFechaSalida);
+            }
+        });
         txtFechaSalida.getCalendarButton().setIcon(new ImageIcon(Objects.requireNonNull(ReservasView.class.getResource("/imagenes/icon-reservas.png"))));
         txtFechaSalida.getCalendarButton().setFont(new Font("Roboto", Font.PLAIN, 11));
         txtFechaSalida.setBounds(68, 246, 289, 35);
         txtFechaSalida.getCalendarButton().setBounds(267, 1, 21, 31);
         txtFechaSalida.setBackground(Color.WHITE);
         txtFechaSalida.setFont(new Font("Roboto", Font.PLAIN, 18));
-
-
-
-        txtFechaSalida.addPropertyChangeListener(new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent evt) {
-
-                //Activa el evento, después del usuario seleccionar las fechas se debe calcular el valor de la reserva
-                // TODO : Implementar calculo de reserva.
-
-            }
-        });
-
         txtFechaSalida.setDateFormatString("yyyy-MM-dd");
         txtFechaSalida.getCalendarButton().setBackground(SystemColor.textHighlight);
         txtFechaSalida.setBorder(new LineBorder(new Color(255, 255, 255), 0));
@@ -307,17 +315,13 @@ public class ReservasView extends JFrame {
         txtFormaPago.setModel(new DefaultComboBoxModel(new String[]{"Tarjeta de Crédito", "Tarjeta de Débito", "Dinero en efectivo"}));
         panel.add(txtFormaPago);
 
-
+        //Boton Siguiente
         JPanel btnsiguiente = new JPanel();
         btnsiguiente.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (ReservasView.txtFechaEntrada.getDate() != null && ReservasView.txtFechaSalida.getDate() != null) {
-                    RegistroHuesped registro = new RegistroHuesped();
-                    registro.setVisible(true);
-
-                   // TODO : Implementar guardar los Datos
-
+                    guardarReserva();
                 } else {
                     JOptionPane.showMessageDialog(null, "Debes llenar todos los campos.");
                 }
@@ -328,9 +332,33 @@ public class ReservasView extends JFrame {
         btnsiguiente.setBounds(238, 493, 122, 35);
         panel.add(btnsiguiente);
         btnsiguiente.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+    }
 
+    private void guardarReserva() {
+        String FechaE = ((JTextField) txtFechaEntrada.getDateEditor().getUiComponent()).getText();
+        String FechaS = ((JTextField) txtFechaSalida.getDateEditor().getUiComponent()).getText();
+        String formaDePago = Objects.requireNonNull(txtFormaPago.getSelectedItem()).toString();
+        Reserva nuevaReserva = new Reserva(java.sql.Date.valueOf(FechaE), java.sql.Date.valueOf(FechaS), Double.parseDouble(txtValor.getText()), formaDePago != null ? formaDePago : "efectivo");
+        reservaDao.guardar(nuevaReserva);
 
+        JOptionPane.showMessageDialog(contentPane, "Reserva Guardada Con Exito" + "#" + nuevaReserva.getId());
 
+        RegistroHuesped huesped = new RegistroHuesped(nuevaReserva.getId());
+        huesped.setVisible(true);
+        dispose();
+    }
+
+    private void calcularValor(JDateChooser fechaE, JDateChooser fechaS) {
+        if (fechaE.getDate() != null && fechaS.getDate() != null) {
+            Date checkInDate = fechaE.getDate();
+            Date checkOutDate = fechaS.getDate();
+
+            long timeDifference = checkOutDate.getTime() - checkInDate.getTime();
+            int numberOfNights = (int) (timeDifference / (24 * 60 * 60 * 1000));
+
+            String price = String.valueOf(nightPrice * numberOfNights);
+            txtValor.setText(price);
+        }
     }
 
     //Código que permite mover la ventana por la pantalla según la posición de "x" y "y"
