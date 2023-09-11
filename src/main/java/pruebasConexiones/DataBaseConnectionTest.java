@@ -1,7 +1,7 @@
 package main.java.pruebasConexiones;
 
 import javax.persistence.EntityManager;
-import main.java.utils.JPAUtils;
+import main.java.utils.JPAUtil;
 
 
 public class DataBaseConnectionTest {
@@ -11,7 +11,7 @@ public class DataBaseConnectionTest {
 
         try {
 
-            EntityManager manager = JPAUtils.getEntityManager();
+            EntityManager manager = JPAUtil.getEntityManager();
             System.out.println("Conexion Existosa!...");
 
         } catch (Exception e) {
