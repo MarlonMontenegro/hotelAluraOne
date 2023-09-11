@@ -9,10 +9,12 @@ public class Huesped {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private int id;
     private String nombre;
     private String apellido;
+    @Column(name = "fecha_de_Nacimiento")
     private Date fechaDeNacimiento;
+    @Column(name = "Nacionalidad")
     private String nacionalidad;
     private String telefono;
 
@@ -28,7 +30,7 @@ public class Huesped {
         this.telefono = telefono;
     }
 
-    public long getId() {
+    public int getId() {
         return id;
     }
 

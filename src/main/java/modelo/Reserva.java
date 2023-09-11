@@ -11,9 +11,12 @@ public class Reserva {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+    @Column(name = "fecha_entrada")
     private Date fechaEntrada;
+    @Column(name = "fecha_salida")
     private Date fechaSalida;
     private double valor;
+    @Column(name = "forma_pago")
     private String formaPago;
 
     @SuppressWarnings("unused")

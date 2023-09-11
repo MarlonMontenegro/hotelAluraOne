@@ -1,27 +1,24 @@
 package main.resources.views;
 
 import java.awt.EventQueue;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
+import javax.persistence.EntityManager;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.JTextField;
 import java.awt.Color;
 
 import com.toedter.calendar.JDateChooser;
+import main.java.dao.HuespedDao;
+import main.java.modelo.Huesped;
+import main.java.utils.JPAUtils;
 
-import javax.swing.JComboBox;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JLabel;
 import java.awt.Font;
-import javax.swing.ImageIcon;
 import java.awt.SystemColor;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.text.Format;
 import java.awt.Toolkit;
-import javax.swing.SwingConstants;
-import javax.swing.JSeparator;
+import java.util.Date;
 
 @SuppressWarnings("serial")
 public class RegistroHuesped extends JFrame {
@@ -35,6 +32,8 @@ public class RegistroHuesped extends JFrame {
     private final JComboBox<Format> txtNacionalidad;
     private final JLabel labelExit;
     private final JLabel labelAtras;
+    private final EntityManager manager = JPAUtils.getEntityManager();
+    private final HuespedDao huespedDao = new HuespedDao(manager);
     int xMouse, yMouse;
 
 
@@ -257,6 +256,7 @@ public class RegistroHuesped extends JFrame {
         btnguardar.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                guardarHuesped();
 
             }
         });
@@ -321,6 +321,41 @@ public class RegistroHuesped extends JFrame {
         labelExit.setHorizontalAlignment(SwingConstants.CENTER);
         labelExit.setForeground(SystemColor.black);
         labelExit.setFont(new Font("Roboto", Font.PLAIN, 18));
+    }
+
+    private void guardarHuesped() {
+        String nombre = txtNombre.getText();
+        String apellido = txtApellido.getText();
+        String fechaNacimiento = ((JTextField) txtFechaN.getDateEditor().getUiComponent()).getText();
+        String nacionalidad = (String) txtNacionalidad.getSelectedItem();
+        String telefono = txtTelefono.getText();
+
+        // Validación de datos
+        if (nombre.isEmpty() || apellido.isEmpty() || fechaNacimiento.isEmpty() || telefono.isEmpty()) {
+            JOptionPane.showMessageDialog(contentPane, "Por favor, complete todos los campos.");
+            return;
+        }
+
+        try {
+
+            Date fechaNacimientoDate = java.sql.Date.valueOf(fechaNacimiento);
+
+            Huesped nuevoHuesped = new Huesped(nombre, apellido, fechaNacimientoDate, nacionalidad, telefono);
+
+            manager.getTransaction().begin();
+            huespedDao.guardar(nuevoHuesped);
+            manager.getTransaction().commit();
+            manager.close();
+
+            JOptionPane.showMessageDialog(contentPane, "Huesped Guardado con Éxito");
+            dispose();
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(contentPane, "La fecha de nacimiento debe tener un formato válido (AAAA-MM-DD).");
+        }
+
+        MenuPrincipal principal = new MenuPrincipal();
+        principal.setVisible(true);
+        dispose();
     }
 
 
