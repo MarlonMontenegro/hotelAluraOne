@@ -1,7 +1,7 @@
 package main.java.views;
 
 import com.toedter.calendar.JDateChooser;
-import main.java.dao.ReservaController;
+import main.java.dao.ReservaDao;
 import main.java.modelo.Reserva;
 import main.java.utils.JPAUtil;
 
@@ -28,7 +28,7 @@ public class ReservasView extends JFrame {
     private final JLabel labelExit;
     private final JLabel labelAtras;
     private final EntityManager manager = JPAUtil.getEntityManager();
-    private final ReservaController reservaController = new ReservaController(manager);
+    private final ReservaDao reservaDao = new ReservaDao(manager);
 
     /**
      * Launch the application.
@@ -311,7 +311,7 @@ public class ReservasView extends JFrame {
 
         manager.getTransaction().begin();
 
-        reservaController.guardar(nuevaReserva);
+        reservaDao.guardar(nuevaReserva);
 
         manager.getTransaction().commit();
 

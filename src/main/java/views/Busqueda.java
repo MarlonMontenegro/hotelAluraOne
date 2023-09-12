@@ -6,7 +6,7 @@ import main.java.modelo.Huesped;
 import main.java.modelo.Reserva;
 import main.java.utils.JPAUtil;
 
-import java.awt.EventQueue;
+import java.awt.*;
 import javax.persistence.EntityManager;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -16,18 +16,14 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ImageIcon;
-import java.awt.Color;
 import javax.swing.JLabel;
-import java.awt.Font;
 import javax.swing.JTabbedPane;
-import java.awt.Toolkit;
 import javax.swing.SwingConstants;
 import javax.swing.JSeparator;
 import javax.swing.ListSelectionModel;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -45,6 +41,7 @@ public class Busqueda extends JFrame {
     private ReservaController reservaController;
     private HuespedController huespedController;
     private EntityManager manager = JPAUtil.getEntityManager();
+    private boolean busquedaRealizada = false;
     int xMouse, yMouse;
 
     /**
@@ -228,8 +225,15 @@ public class Busqueda extends JFrame {
         btnbuscar.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                llenarTablaTabla();
-                llenarTablaHuespedes();
+                int selectedTabIndex = panel.getSelectedIndex();
+
+                if (selectedTabIndex == 0) { //Reserva
+                    llenarTablaReserva();
+
+                } else if (selectedTabIndex == 1) { // Huespedes
+                    llenarTablaHuespedes();
+
+                }
             }
         });
 
@@ -255,6 +259,32 @@ public class Busqueda extends JFrame {
         btnEditar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPane.add(btnEditar);
 
+        btnEditar.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+
+                int selectedTabIndex = panel.getSelectedIndex();
+
+                if (selectedTabIndex == 0) {
+
+                    int selectedColumnReservas = tbReservas.getSelectedColumn();
+                    int selectedRowReservas = tbReservas.getSelectedRow();
+
+                    int idSelectedReservas = (int) tbReservas.getValueAt(selectedRowReservas, selectedColumnReservas);
+
+
+                } else if (selectedTabIndex == 1) {
+
+                    int selectedColumnHuesped = tbHuespedes.getSelectedColumn();
+                    int selectedRowHuesped = tbHuespedes.getSelectedRow();
+
+                    int idSelectedHuesped = (int) tbHuespedes.getValueAt(selectedRowHuesped, selectedColumnHuesped);
+
+
+                }
+            }
+        });
+
         JLabel lblEditar = new JLabel("EDITAR");
         lblEditar.setHorizontalAlignment(SwingConstants.CENTER);
         lblEditar.setForeground(Color.WHITE);
@@ -274,6 +304,26 @@ public class Busqueda extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
 
+                int selectedTabIndex = panel.getSelectedIndex();
+
+                if (selectedTabIndex == 0) {
+
+                    int selectedColumnReservas = tbReservas.getSelectedColumn();
+                    int selectedRowReservas = tbReservas.getSelectedRow();
+
+                    int idSelectedReservas = (int) tbReservas.getValueAt(selectedRowReservas, selectedColumnReservas);
+
+                    eliminarReserva(idSelectedReservas);
+
+                } else if (selectedTabIndex == 1) {
+
+                    int selectedColumnHuesped = tbHuespedes.getSelectedColumn();
+                    int selectedRowHuesped = tbHuespedes.getSelectedRow();
+
+                    int idSelectedHuesped = (int) tbHuespedes.getValueAt(selectedRowHuesped, selectedColumnHuesped);
+
+                    eliminarHuesped(idSelectedHuesped);
+                }
             }
         });
 
@@ -284,51 +334,69 @@ public class Busqueda extends JFrame {
         lblEliminar.setFont(new Font("Roboto", Font.PLAIN, 18));
         lblEliminar.setBounds(0, 0, 122, 35);
         btnEliminar.add(lblEliminar);
-        setResizable(false);
+
+
     }
 
+    private void llenarTablaReserva() {
+
+        List<Reserva> reserva = buscarReservas();
+
+        for (Reserva reservas : reserva) {
+            modelo.addRow(new Object[]{reservas.getId(), reservas.getFechaEntrada(),
+                    reservas.getFechaSalida(), reservas.getValor(), reservas.getFormaPago()});
+        }
+    }
+
+    private void llenarTablaHuespedes() {
+
+        List<Huesped> huesped = buscarHuesped();
+
+        for (Huesped huespedes : huesped) {
+            modeloHuesped.addRow(new Object[]{huespedes.getId(), huespedes.getNombre(), huespedes.getApellido()
+                    , huespedes.getFechaDeNacimiento(), huespedes.getNacionalidad(), huespedes.getTelefono()});
+        }
+    }
 
     private List<Reserva> buscarReservas() {
         return this.reservaController.buscar();
     }
 
-    private void llenarTablaTabla() {
-        List<Reserva> reserva = buscarReservas();
-        List<Huesped> huesped = buscarHuesped();
-        List<Integer> idReserva = new ArrayList<>();
-
-        for (Reserva reservas : reserva) {
-
-            modelo.addRow(new Object[]{reservas.getId(), reservas.getFechaEntrada(),
-                    reservas.getFechaSalida(), reservas.getValor(), reservas.getFormaPago()});
-
-            idReserva.add(reservas.getId());
-        }
-
-
-        for (Huesped huespedes : huesped) {
-
-            int numeroReserva = 0;
-
-            for (Integer i : idReserva) {
-                if (i == huespedes.getId()) {
-                    numeroReserva = i;
-                    break;
-                }
-            }
-
-            modeloHuesped.addRow(new Object[]{huespedes.getId(), huespedes.getNombre(), huespedes.getApellido()
-                    , huespedes.getFechaDeNacimiento(), huespedes.getNacionalidad(), huespedes.getTelefono(), numeroReserva});
-        }
-    }
 
     private List<Huesped> buscarHuesped() {
         return this.huespedController.buscar();
     }
 
-    private void llenarTablaHuespedes() {
+    private void eliminarReserva(int id) {
+        reservaController.eliminar(id);
 
+        // Limpia la tabla
+        DefaultTableModel modelo = (DefaultTableModel) tbReservas.getModel();
+        modelo.setRowCount(0);
+
+        // Vuelve a cargar los datos en la tabla
+        llenarTablaReserva();
     }
+
+
+    private void eliminarHuesped(int id) {
+        huespedController.eliminarHuesped(id);
+
+        // Limpia la tabla
+        DefaultTableModel modelo = (DefaultTableModel) tbHuespedes.getModel();
+        modelo.setRowCount(0);
+
+        // Vuelve a cargar los datos en la tabla
+        llenarTablaHuespedes();
+    }
+
+
+    //TODO: Implementar completamente el método editarReserva en la clase ReservaDao.
+    // Este método debe permitir la edición de los detalles de una reserva existente.
+
+    // TODO: Implementar completamente el método editarHuesped en la clase HuespedDao.
+    //  Este método debe permitir la edición de los detalles de un huésped existente.
+
 
     //Código que permite mover la ventana por la pantalla según la posición de "x" y "y"
     private void headerMousePressed(java.awt.event.MouseEvent evt) {

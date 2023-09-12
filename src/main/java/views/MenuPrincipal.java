@@ -64,12 +64,12 @@ public class MenuPrincipal extends JFrame {
 		
 		JLabel imagenFondo = new JLabel("");
 		imagenFondo.setBounds(-50, 0, 732, 501);
-		imagenFondo.setIcon(new ImageIcon(MenuPrincipal.class.getResource("/imagenes/menu-img.png")));
+		imagenFondo.setIcon(new ImageIcon(Objects.requireNonNull(MenuPrincipal.class.getResource("/imagenes/menu-img.png"))));
 		panel.add(imagenFondo);
 		
 		JLabel logo = new JLabel("");
 		logo.setBounds(722, 80, 150, 156);
-		logo.setIcon(new ImageIcon(MenuPrincipal.class.getResource("/imagenes/aH-150px.png")));
+		logo.setIcon(new ImageIcon(Objects.requireNonNull(MenuPrincipal.class.getResource("/imagenes/aH-150px.png"))));
 		panel.add(logo);
 		
 		JPanel panel_1 = new JPanel();
@@ -91,7 +91,6 @@ public class MenuPrincipal extends JFrame {
 			@Override
 			public void mouseDragged(MouseEvent e) {
 				headerMouseDragged(e);
-			     
 			}
 		});
 		header.addMouseListener(new MouseAdapter() {
